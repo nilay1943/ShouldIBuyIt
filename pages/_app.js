@@ -8,6 +8,15 @@ const theme = extendTheme({
       },
     },
   },
+  components: {
+    Form: {
+      baseStyle: {
+        requiredIndicator: {
+          display: 'none',
+        },
+      },
+    },
+  },
 })
 
 function MyApp({ Component, pageProps }) {

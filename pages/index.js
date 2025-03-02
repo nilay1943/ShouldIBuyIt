@@ -79,7 +79,7 @@ export default function Home() {
               Should I Buy It? 🤔
             </Heading>
             <Text color="gray.500" fontSize="lg">
-              Get witty financial advice for your shopping decisions
+              Get financial advice for your shopping decisions
             </Text>
           </Box>
           
@@ -103,7 +103,7 @@ export default function Home() {
                 </FormLabel>
                 <NumberInput min={0}>
                   <NumberInputField
-                    placeholder="Enter your monthly income"
+                    placeholder="What's your monthly income?"
                     value={monthlyIncome}
                     onChange={(e) => setMonthlyIncome(e.target.value)}
                     bg={useColorModeValue('white', 'gray.700')}

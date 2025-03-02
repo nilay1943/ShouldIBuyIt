@@ -5,7 +5,7 @@ const nextConfig = {
     unoptimized: true,
   },
   basePath: '/FinanceHelper',
-  assetPrefix: '/FinanceHelper',
+  assetPrefix: '/FinanceHelper/',
 }
 
 module.exports = nextConfig 

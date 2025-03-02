@@ -1,6 +1,6 @@
 # Should I Buy It?
 
-A fun web application that helps you decide whether you should make a purchase or not, powered by ChatGPT's witty financial advice.
+A web application that helps you decide whether you should make a purchase or not, powered by ChatGPT's witty financial advice.
 
 ## Features
 

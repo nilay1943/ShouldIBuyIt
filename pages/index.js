@@ -45,7 +45,7 @@ const MoneyPileVisualizer = ({ monthlyIncome, itemPrice }) => {
       top: 200 + (bagPositions.length * 10),
       offset: 20 + Math.random() * 80,
       rotation: Math.random() * 40 - 20,
-      entranceDelay: index * 0.01,
+      entranceDelay: 0,
       zIndex: 10 + layer * 5,
       scale: 1 + (layer * 0.1),
       opacity: 1
@@ -70,33 +70,31 @@ const MoneyPileVisualizer = ({ monthlyIncome, itemPrice }) => {
       // Need to burn away excess bags
       const bagsToRemove = visibleBagCount - targetBagCount;
       
-      // Start all bags burning almost simultaneously
-      visibleBags.slice(-bagsToRemove).forEach((bag, index) => {
+      // Start all bags burning simultaneously
+      visibleBags.slice(-bagsToRemove).forEach(bag => {
+        setBurningBags(prev => new Set([...prev, bag.id]));
+        setFlames(prev => {
+          const next = new Map(prev);
+          next.set(bag.id, true);
+          return next;
+        });
+        
         setTimeout(() => {
-          setBurningBags(prev => new Set([...prev, bag.id]));
-          setFlames(prev => {
-            const next = new Map(prev);
-            next.set(bag.id, true);
+          setBagPositions(prev => prev.map(b => 
+            b.id === bag.id ? { ...b, opacity: 0 } : b
+          ));
+          setHiddenBags(prev => new Set([...prev, bag.id]));
+          setBurningBags(prev => {
+            const next = new Set(prev);
+            next.delete(bag.id);
             return next;
           });
-          
-          setTimeout(() => {
-            setBagPositions(prev => prev.map(b => 
-              b.id === bag.id ? { ...b, opacity: 0 } : b
-            ));
-            setHiddenBags(prev => new Set([...prev, bag.id]));
-            setBurningBags(prev => {
-              const next = new Set(prev);
-              next.delete(bag.id);
-              return next;
-            });
-            setFlames(prev => {
-              const next = new Map(prev);
-              next.delete(bag.id);
-              return next;
-            });
-          }, 1000);
-        }, index * 5);
+          setFlames(prev => {
+            const next = new Map(prev);
+            next.delete(bag.id);
+            return next;
+          });
+        }, 1000);
       });
     } else if (targetBagCount > visibleBagCount) {
       // Need to add more bags
@@ -107,7 +105,7 @@ const MoneyPileVisualizer = ({ monthlyIncome, itemPrice }) => {
       const bagsToReuse = hiddenBagsArray.slice(0, Math.min(bagsToAdd, hiddenBagsArray.length));
       const remainingBagsToAdd = bagsToAdd - bagsToReuse.length;
 
-      // Reuse hidden bags
+      // Reuse hidden bags all at once
       if (bagsToReuse.length > 0) {
         setBagPositions(prev => prev.map(bag => 
           bagsToReuse.includes(bag.id) ? { ...bag, opacity: 1 } : bag
@@ -117,10 +115,10 @@ const MoneyPileVisualizer = ({ monthlyIncome, itemPrice }) => {
           bagsToReuse.forEach(id => next.delete(id));
           return next;
         });
-        bagsToReuse.forEach((id, index) => {
+        bagsToReuse.forEach(id => {
           setPoofBags(prev => {
             const next = new Map(prev);
-            next.set(id, { type: 'in', timestamp: Date.now() + index * 10 });
+            next.set(id, { type: 'in', timestamp: Date.now() });
             return next;
           });
         });
@@ -133,7 +131,7 @@ const MoneyPileVisualizer = ({ monthlyIncome, itemPrice }) => {
         newBags.forEach(bag => {
           setPoofBags(prev => {
             const next = new Map(prev);
-            next.set(bag.id, { type: 'in', timestamp: Date.now() + bag.entranceDelay * 1000 });
+            next.set(bag.id, { type: 'in', timestamp: Date.now() });
             return next;
           });
         });

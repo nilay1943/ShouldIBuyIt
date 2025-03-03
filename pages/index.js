@@ -314,6 +314,10 @@ export default function Home() {
         }),
       });
 
+      if (!res.ok) {
+        throw new Error('Failed to get advice');
+      }
+
       const data = await res.json();
       setResponse(data.message);
     } catch (error) {

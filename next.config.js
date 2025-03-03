@@ -5,9 +5,7 @@ const nextConfig = {
   },
   basePath: process.env.NODE_ENV === 'production' ? '/ShouldIBuyIt' : '',
   assetPrefix: process.env.NODE_ENV === 'production' ? '/ShouldIBuyIt/' : '',
-  experimental: {
-    runtime: 'edge',
-  }
+  output: 'export'
 }
 
 module.exports = nextConfig 

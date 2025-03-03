@@ -19,7 +19,6 @@ import {
   Grid,
 } from '@chakra-ui/react';
 import { FaMoneyBillWave, FaShoppingCart, FaTag } from 'react-icons/fa';
-import OpenAI from 'openai';
 
 const MoneyPileVisualizer = ({ monthlyIncome, itemPrice }) => {
   const [bagPositions, setBagPositions] = useState([]);
@@ -303,22 +302,25 @@ export default function Home() {
     setLoading(true);
     
     try {
-      const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-        dangerouslyAllowBrowser: true
+      const response = await fetch('https://finance-helper-api.should-i-buy-it.workers.dev', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          monthlyIncome,
+          itemName,
+          itemPrice,
+        }),
       });
 
-      const prompt = `You're a sassy, slightly mean (but funny) financial advisor. Someone making $${monthlyIncome}/month wants to buy a ${itemName} for $${itemPrice}. Roast their decision in a short, witty response (max 50 words). Be creative and use emojis. If it's actually a sensible purchase, you can reluctantly admit it, but still be snarky about it.`;
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get advice');
+      }
 
-      const completion = await openai.chat.completions.create({
-        messages: [{ role: "user", content: prompt }],
-        model: "gpt-3.5-turbo",
-        max_tokens: 100,
-        temperature: 0.8,
-      });
-
-      const message = completion.choices[0].message.content;
-      setResponse(message);
+      setResponse(data.message);
     } catch (error) {
       toast({
         title: 'Error',

@@ -32,9 +32,19 @@ const MoneyPileVisualizer = ({ monthlyIncome, itemPrice }) => {
   
   // Calculate number of bags based on remaining spendable income
   const calculateBags = (income, price = 0) => {
-    const remainingIncome = Math.max(0, income - price);
-    if (remainingIncome <= 0) return 0;
-    return Math.max(1, Math.floor(Math.log(remainingIncome) / Math.log(4) * 2));
+    const numericIncome = parseFloat(income) || 0;
+    const numericPrice = parseFloat(price) || 0;
+    
+    if (numericIncome <= 0) return 0;
+    
+    // Calculate the base number of bags from income using log base 4
+    const baseBags = Math.floor(Math.log(numericIncome) / Math.log(4) * 2);
+    
+    // Calculate the reduction factor based on price/income ratio
+    const reductionFactor = Math.max(0, 1 - (numericPrice / numericIncome));
+    
+    // Return the adjusted number of bags
+    return Math.max(0, Math.floor(baseBags * reductionFactor));
   };
 
   const createNewBag = (index) => {

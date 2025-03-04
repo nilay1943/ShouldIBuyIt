@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Container,
@@ -15,16 +15,26 @@ import {
   useColorModeValue,
   Icon,
   HStack,
-  Flex,
-  Grid,
 } from '@chakra-ui/react';
 import { FaMoneyBillWave, FaShoppingCart, FaTag } from 'react-icons/fa';
 
+const createNewBag = (bagCount) => {
+  const layer = Math.floor(Math.random() * 3);
+  return {
+    id: Date.now() + bagCount,
+    side: Math.random() > 0.5 ? 'left' : 'right',
+    top: 200 + (bagCount * 10),
+    offset: 20 + Math.random() * 80,
+    rotation: Math.random() * 40 - 20,
+    entranceDelay: 0,
+    zIndex: 10 + layer * 5,
+    scale: 1 + (layer * 0.1),
+    opacity: 1
+  };
+};
+
 const MoneyPileVisualizer = ({ monthlyIncome, itemPrice }) => {
   const [bagPositions, setBagPositions] = useState([]);
-  const [lastInputLength, setLastInputLength] = useState(0);
-  const [lastMonthlyIncome, setLastMonthlyIncome] = useState('');
-  const [lastItemPrice, setLastItemPrice] = useState('');
   const [burningBags, setBurningBags] = useState(new Set());
   const [flames, setFlames] = useState(new Map());
   const [poofBags, setPoofBags] = useState(new Map());
@@ -47,29 +57,11 @@ const MoneyPileVisualizer = ({ monthlyIncome, itemPrice }) => {
     return Math.max(0, Math.floor(baseBags * reductionFactor));
   };
 
-  const createNewBag = (index) => {
-    const layer = Math.floor(Math.random() * 3);
-    return {
-      id: Date.now() + index,
-      side: Math.random() > 0.5 ? 'left' : 'right',
-      top: 200 + (bagPositions.length * 10),
-      offset: 20 + Math.random() * 80,
-      rotation: Math.random() * 40 - 20,
-      entranceDelay: 0,
-      zIndex: 10 + layer * 5,
-      scale: 1 + (layer * 0.1),
-      opacity: 1
-    };
-  };
-  
   useEffect(() => {
     const currentIncome = parseFloat(monthlyIncome) || 0;
     const currentPrice = parseFloat(itemPrice) || 0;
     
-    // Calculate target number of bags based on remaining income
     const targetBagCount = calculateBags(currentIncome, currentPrice);
-    
-    // Get currently visible bags
     const visibleBags = bagPositions.filter(bag => bag.opacity !== 0);
     const visibleBagCount = visibleBags.length;
 
@@ -136,7 +128,8 @@ const MoneyPileVisualizer = ({ monthlyIncome, itemPrice }) => {
 
       // Create new bags if needed
       if (remainingBagsToAdd > 0) {
-        const newBags = Array(remainingBagsToAdd).fill(null).map((_, index) => createNewBag(index));
+        const newBags = Array(remainingBagsToAdd).fill(null)
+          .map((_, index) => createNewBag(bagPositions.length + index));
         setBagPositions(prev => [...prev, ...newBags]);
         newBags.forEach(bag => {
           setPoofBags(prev => {
@@ -151,10 +144,7 @@ const MoneyPileVisualizer = ({ monthlyIncome, itemPrice }) => {
         setPoofBags(new Map());
       }, 250);
     }
-    
-    setLastMonthlyIncome(monthlyIncome);
-    setLastItemPrice(itemPrice);
-  }, [monthlyIncome, itemPrice]);
+  }, [monthlyIncome, itemPrice, bagPositions]);
 
   return (
     <>
@@ -301,11 +291,24 @@ export default function Home() {
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+  const responseRef = useRef(null);
 
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const accentColor = useColorModeValue('blue.500', 'blue.300');
+
+  const scrollToResponse = useCallback(() => {
+    if (responseRef.current) {
+      responseRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (response) {
+      scrollToResponse();
+    }
+  }, [response, scrollToResponse]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -348,7 +351,7 @@ export default function Home() {
     <>
       <Box minH="100vh" bg={bgColor} py={10} position="relative">
         <Container maxW="container.md" position="relative" zIndex={2}>
-          <VStack spacing={8} align="stretch">
+          <VStack spacing={4} align="stretch">
             <Box textAlign="center">
               <Heading 
                 as="h1" 
@@ -374,7 +377,7 @@ export default function Home() {
               border="1px"
               borderColor={borderColor}
               position="relative"
-              mb="150px"
+              mb={4}
             >
               <VStack spacing={6}>
                 <FormControl isRequired>
@@ -468,6 +471,7 @@ export default function Home() {
 
             {response && (
               <Box
+                ref={responseRef}
                 p={8}
                 borderRadius="xl"
                 bg={cardBg}
